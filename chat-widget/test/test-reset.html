@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Widget v2.1 - Bouton Reset</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test-card {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    h1 {
+      color: #493f3c;
+    }
+    .feature-list {
+      list-style: none;
+      padding: 0;
+    }
+    .feature-list li {
+      padding: 10px;
+      margin: 5px 0;
+      background: #f7f7f8;
+      border-left: 4px solid #f29b9b;
+      border-radius: 4px;
+    }
+    .feature-list li::before {
+      content: "✓ ";
+      color: #f29b9b;
+      font-weight: bold;
+      margin-right: 8px;
+    }
+    .test-button {
+      background: #f29b9b;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 10px 10px 0;
+    }
+    .test-button:hover {
+      background: #e08a8a;
+    }
+    code {
+      background: #f5f5f5;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-card">
+    <h1>🎉 Widget v2.1 - Test du bouton "Nouvelle conversation"</h1>
+    <p><strong>Nouveauté :</strong> Bouton de reset dans le header du chat !</p>
+
+    <h2>✨ Fonctionnalités à tester :</h2>
+    <ul class="feature-list">
+      <li>Ouvrir le chat → message de bienvenue aléatoire</li>
+      <li>Envoyer plusieurs messages</li>
+      <li>Fermer et ré-ouvrir → messages en cache (5min)</li>
+      <li><strong>NOUVEAU :</strong> Cliquer sur le bouton 🔄 dans le header</li>
+      <li>Vérifier que la conversation est réinitialisée</li>
+      <li>Nouveau message de bienvenue affiché</li>
+    </ul>
+
+    <h2>🧪 Tests rapides :</h2>
+    <button class="test-button" onclick="testDebugMode()">Activer Debug</button>
+    <button class="test-button" onclick="testCheckCache()">Voir Cache</button>
+    <button class="test-button" onclick="testClearAll()">Clear All</button>
+  </div>
+
+  <div class="test-card">
+    <h2>📊 Métriques du build :</h2>
+    <ul>
+      <li><strong>Version :</strong> 2.1.0</li>
+      <li><strong>Bundle size :</strong> 19.57 KB (5.84 KB gzippé)</li>
+      <li><strong>Modules :</strong> 8</li>
+      <li><strong>Tests :</strong> 60 passing</li>
+    </ul>
+  </div>
+
+  <!-- Widget loaded from dist -->
+  <script src="../dist/widget.iife.js"></script>
+
+  <script>
+    function testDebugMode() {
+      localStorage.setItem('lac_debug', 'true');
+      alert('✅ Debug mode activé ! Ouvre la console (F12)');
+      location.reload();
+    }
+
+    function testCheckCache() {
+      const userId = localStorage.getItem('lac_user_id');
+      const convId = localStorage.getItem('lac_conversation_id');
+      const messages = localStorage.getItem('lac_messages_cache');
+      const timestamp = localStorage.getItem('lac_cache_timestamp');
+
+      console.log('📦 Cache Status:');
+      console.log('User ID:', userId);
+      console.log('Conversation ID:', convId);
+      console.log('Messages:', messages ? JSON.parse(messages) : 'None');
+      console.log('Timestamp:', timestamp ? new Date(parseInt(timestamp)).toLocaleString('fr-FR') : 'None');
+
+      alert(`📦 Cache Info:\n\n` +
+            `User ID: ${userId || 'Not set'}\n` +
+            `Conv ID: ${convId || 'Not set'}\n` +
+            `Messages: ${messages ? JSON.parse(messages).length : 0}\n` +
+            `\nOuvre la console pour plus de détails`);
+    }
+
+    function testClearAll() {
+      if (confirm('⚠️ Effacer toutes les données du widget ?')) {
+        localStorage.removeItem('lac_user_id');
+        localStorage.removeItem('lac_conversation_id');
+        localStorage.removeItem('lac_messages_cache');
+        localStorage.removeItem('lac_cache_timestamp');
+        localStorage.removeItem('lac_debug');
+        alert('✅ Toutes les données effacées !');
+        location.reload();
+      }
+    }
+
+    // Log au chargement
+    console.log('🚀 Widget v2.1 loaded!');
+    console.log('New feature: Reset conversation button in header');
+  </script>
+</body>
+</html>

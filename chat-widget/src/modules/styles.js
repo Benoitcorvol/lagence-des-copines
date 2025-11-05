@@ -102,6 +102,42 @@ export function getStyles() {
     .lac-chat-title {
       font-size: 16px;
       font-weight: 600;
+      flex: 1;
+    }
+
+    .lac-header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .lac-reset-button {
+      background: none;
+      border: none;
+      color: ${CONFIG.COLORS.white};
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      transition: background 0.2s ease;
+      padding: 0;
+    }
+
+    .lac-reset-button:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .lac-reset-button:focus {
+      outline: 2px solid ${CONFIG.COLORS.white};
+      outline-offset: 2px;
+    }
+
+    .lac-reset-button svg {
+      width: 20px;
+      height: 20px;
     }
 
     .lac-close-button {

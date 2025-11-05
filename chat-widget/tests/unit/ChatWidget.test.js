@@ -220,4 +220,47 @@ describe('ChatWidget', () => {
       expect(retryButton.textContent).toBe('Réessayer');
     });
   });
+
+  describe('reset conversation', () => {
+    it('should have reset button in header', () => {
+      const resetButton = widget.shadowRoot.querySelector('.lac-reset-button');
+      expect(resetButton).toBeTruthy();
+      expect(resetButton.getAttribute('aria-label')).toBe('Nouvelle conversation');
+    });
+
+    it('should clear messages when reset is called', () => {
+      widget.messages = [
+        { role: 'user', content: 'Test 1', timestamp: '2025-01-01T00:00:00Z' },
+        { role: 'assistant', content: 'Response 1', timestamp: '2025-01-01T00:00:01Z' },
+        { role: 'user', content: 'Test 2', timestamp: '2025-01-01T00:00:02Z' }
+      ];
+
+      widget.resetConversation();
+
+      // Should only have welcome message
+      expect(widget.messages.length).toBe(1);
+      expect(widget.messages[0].role).toBe('assistant');
+    });
+
+    it('should clear textarea when reset is called', () => {
+      const textarea = widget.shadowRoot.querySelector('.lac-input-textarea');
+      textarea.value = 'Some text';
+
+      widget.resetConversation();
+
+      expect(textarea.value).toBe('');
+    });
+
+    it('should add new welcome message on reset', () => {
+      widget.messages = [
+        { role: 'user', content: 'Old message', timestamp: '2025-01-01T00:00:00Z' }
+      ];
+
+      widget.resetConversation();
+
+      expect(widget.messages.length).toBe(1);
+      expect(widget.messages[0].role).toBe('assistant');
+      expect(widget.messages[0].content).toMatch(/Salut|Coucou|Hello/);
+    });
+  });
 });

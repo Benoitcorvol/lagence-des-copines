@@ -5,7 +5,7 @@
 
 import { CONFIG, ERROR_MESSAGES, WELCOME_MESSAGES } from './config.js';
 import { debug, formatTime, escapeHtml, getRandomItem } from './utils.js';
-import { loadMessagesFromCache, saveMessagesToCache, getUserId } from './storage.js';
+import { loadMessagesFromCache, saveMessagesToCache, getUserId, resetConversation as resetConversationStorage } from './storage.js';
 import { sendMessageToAPI, getErrorType } from './api.js';
 import { getStyles } from './styles.js';
 import { getHTML } from './template.js';
@@ -83,6 +83,7 @@ export class ChatWidget extends HTMLElement {
   attachEventListeners() {
     const button = this.shadowRoot.querySelector('.lac-widget-button');
     const closeButton = this.shadowRoot.querySelector('.lac-close-button');
+    const resetButton = this.shadowRoot.querySelector('.lac-reset-button');
     const textarea = this.shadowRoot.querySelector('.lac-input-textarea');
     const sendButton = this.shadowRoot.querySelector('.lac-send-button');
 
@@ -94,6 +95,11 @@ export class ChatWidget extends HTMLElement {
     // Close chat
     closeButton.addEventListener('click', () => {
       this.toggleChat(false);
+    });
+
+    // Reset conversation
+    resetButton.addEventListener('click', () => {
+      this.resetConversation();
     });
 
     // Close on Escape key
@@ -175,6 +181,32 @@ export class ChatWidget extends HTMLElement {
       this.isOpen = false;
       debug('Chat closed');
     }
+  }
+
+  /**
+   * Reset conversation - clear messages and start fresh
+   */
+  resetConversation() {
+    debug('Resetting conversation');
+
+    // Reset storage (creates new conversation ID and clears cache)
+    resetConversationStorage();
+
+    // Clear messages array
+    this.messages = [];
+
+    // Add welcome message
+    this.addWelcomeMessage();
+
+    // Clear textarea
+    const textarea = this.shadowRoot.querySelector('.lac-input-textarea');
+    if (textarea) {
+      textarea.value = '';
+      this.updateCharacterCounter();
+      this.updateSendButtonState();
+    }
+
+    debug('Conversation reset complete');
   }
 
   /**
