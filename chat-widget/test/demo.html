@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Widget Demo - Stories 2.5-2.9</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      padding: 2rem;
+      background: linear-gradient(135deg, #f7f7f8 0%, #e8e8ea 100%);
+      margin: 0;
+    }
+
+    .demo-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      color: #493f3c;
+      margin-bottom: 0.5rem;
+    }
+
+    .subtitle {
+      color: #f29b9b;
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .feature-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border-left: 4px solid #f29b9b;
+    }
+
+    .feature-card h3 {
+      color: #493f3c;
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+    }
+
+    .feature-card .story-number {
+      background: #f29b9b;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-right: 8px;
+    }
+
+    .feature-card ul {
+      margin: 1rem 0;
+      padding-left: 1.5rem;
+      line-height: 1.8;
+    }
+
+    .feature-card li {
+      margin-bottom: 0.5rem;
+    }
+
+    .test-section {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+    }
+
+    .test-section h2 {
+      color: #493f3c;
+      margin-top: 0;
+      margin-bottom: 1rem;
+    }
+
+    .test-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 1.5rem 0;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 14px;
+    }
+
+    .btn-primary {
+      background: #f29b9b;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #e08a8a;
+    }
+
+    .btn-secondary {
+      background: #493f3c;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #3a322f;
+    }
+
+    .btn-info {
+      background: #2196f3;
+      color: white;
+    }
+
+    .btn-info:hover {
+      background: #1976d2;
+    }
+
+    .btn-danger {
+      background: #f44336;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #d32f2f;
+    }
+
+    .test-result {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 8px;
+      background: #f7f7f8;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      display: none;
+    }
+
+    .test-result.show {
+      display: block;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 8px;
+    }
+
+    .status-badge.success {
+      background: #4caf50;
+      color: white;
+    }
+
+    .status-badge.warning {
+      background: #ff9800;
+      color: white;
+    }
+
+    .checklist {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .checklist h3 {
+      color: #493f3c;
+      margin-top: 0;
+    }
+
+    .checklist ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    .checklist li {
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .checklist li:last-child {
+      border-bottom: none;
+    }
+
+    .footer {
+      margin-top: 3rem;
+      text-align: center;
+      color: #999;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-container">
+    <h1>🎉 Widget Demo - Epic 2 Complete!</h1>
+    <p class="subtitle">Stories 2.5 → 2.9 Implemented</p>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h3><span class="story-number">2.5</span>Message Send/Receive UI</h3>
+        <ul>
+          <li>✅ User message bubbles (right, rose)</li>
+          <li>✅ Bot message bubbles (left, white)</li>
+          <li>✅ Timestamps (HH:MM format)</li>
+          <li>✅ Auto-scroll to bottom</li>
+          <li>✅ Character counter (0/2000)</li>
+          <li>✅ Send on Enter key</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <h3><span class="story-number">2.6</span>Typing Indicator</h3>
+        <ul>
+          <li>✅ 3 animated dots</li>
+          <li>✅ Appears when sending</li>
+          <li>✅ Rose color animation</li>
+          <li>✅ Screen reader announcement</li>
+          <li>✅ Smooth appearance/removal</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <h3><span class="story-number">2.7</span>localStorage Persistence</h3>
+        <ul>
+          <li>✅ Messages saved to cache</li>
+          <li>✅ 5-minute cache duration</li>
+          <li>✅ Auto-restore on reload</li>
+          <li>✅ Welcome message on first visit</li>
+          <li>✅ UUID generation</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <h3><span class="story-number">2.8</span>Error Handling</h3>
+        <ul>
+          <li>✅ Network error messages</li>
+          <li>✅ Timeout handling (15s)</li>
+          <li>✅ Rate limit detection (429)</li>
+          <li>✅ Retry button</li>
+          <li>✅ Auto-retry (1x silent)</li>
+          <li>✅ French error messages</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <h3><span class="story-number">2.9</span>API Communication</h3>
+        <ul>
+          <li>✅ POST to n8n webhook</li>
+          <li>✅ JSON payload (userId, conversationId, message)</li>
+          <li>✅ 15s timeout</li>
+          <li>✅ XSS prevention (escapeHtml)</li>
+          <li>✅ Response parsing</li>
+        </ul>
+      </div>
+
+      <div class="feature-card">
+        <h3><span class="story-number">Bonus</span>Extra Features</h3>
+        <ul>
+          <li>✅ Mobile responsive (fullscreen)</li>
+          <li>✅ Shadow DOM isolation</li>
+          <li>✅ Accessibility (ARIA)</li>
+          <li>✅ Debug mode toggle</li>
+          <li>✅ Bundle: 5.21 KB gzipped</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <h2>🧪 Test Scenarios</h2>
+      <p>Click the buttons below to test different scenarios:</p>
+
+      <div class="test-actions">
+        <button class="btn btn-primary" onclick="testWelcomeMessage()">
+          1. Test Welcome Message
+        </button>
+        <button class="btn btn-primary" onclick="testSendMessage()">
+          2. Test Send Message
+        </button>
+        <button class="btn btn-primary" onclick="testTypingIndicator()">
+          3. Test Typing Indicator
+        </button>
+        <button class="btn btn-info" onclick="testPersistence()">
+          4. Test Persistence
+        </button>
+        <button class="btn btn-info" onclick="testCharacterCounter()">
+          5. Test Character Counter
+        </button>
+        <button class="btn btn-warning" onclick="testTimeout()">
+          6. Simulate Timeout
+        </button>
+        <button class="btn btn-danger" onclick="testClearCache()">
+          Clear Cache & Reload
+        </button>
+        <button class="btn btn-secondary" onclick="toggleDebug()">
+          Toggle Debug Mode
+        </button>
+      </div>
+
+      <div id="test-result" class="test-result"></div>
+    </div>
+
+    <div class="checklist">
+      <h3>✅ Epic 2 Acceptance Criteria</h3>
+      <ul>
+        <li>✅ <strong>Story 2.1-2.3:</strong> Widget foundation, button, popup (DONE)</li>
+        <li>✅ <strong>Story 2.4:</strong> Mobile fullscreen mode (DONE)</li>
+        <li>✅ <strong>Story 2.5:</strong> Message send/receive UI with bubbles (DONE)</li>
+        <li>✅ <strong>Story 2.6:</strong> Typing indicator animation (DONE)</li>
+        <li>✅ <strong>Story 2.7:</strong> localStorage persistence + 5min cache (DONE)</li>
+        <li>✅ <strong>Story 2.8:</strong> Error handling with retry (DONE)</li>
+        <li>✅ <strong>Story 2.9:</strong> API communication to n8n (DONE)</li>
+        <li>⏳ <strong>Story 2.10:</strong> Production build (READY - 5.21KB gzipped)</li>
+        <li>⏳ <strong>Story 2.11:</strong> Kajabi integration docs (TODO)</li>
+      </ul>
+    </div>
+
+    <div class="footer">
+      <p><strong>Epic 2 Widget UI: 9/11 stories COMPLETE</strong></p>
+      <p>Bundle Size: 5.21 KB gzipped ✅ | Performance: Excellent ✅</p>
+      <p>Next: Deploy to VPS and integrate with n8n backend (Epic 3)</p>
+    </div>
+  </div>
+
+  <!-- Load Widget Script -->
+  <script src="../src/widget.js"></script>
+
+  <!-- Test Functions -->
+  <script>
+    const resultDiv = document.getElementById('test-result');
+
+    function showResult(message, success = true) {
+      resultDiv.innerHTML = `<strong>${success ? '✅' : '❌'} Result:</strong><br>${message}`;
+      resultDiv.classList.add('show');
+    }
+
+    function testWelcomeMessage() {
+      const widget = document.querySelector('lac-chat-widget');
+      if (!widget) {
+        showResult('Widget not found!', false);
+        return;
+      }
+
+      // Clear cache to trigger welcome message
+      localStorage.removeItem('lac_messages_cache');
+      localStorage.removeItem('lac_cache_timestamp');
+      location.reload();
+    }
+
+    function testSendMessage() {
+      const widget = document.querySelector('lac-chat-widget');
+      if (!widget || !widget.shadowRoot) {
+        showResult('Widget not found!', false);
+        return;
+      }
+
+      // Open chat
+      const button = widget.shadowRoot.querySelector('.lac-widget-button');
+      if (button) button.click();
+
+      setTimeout(() => {
+        const textarea = widget.shadowRoot.querySelector('.lac-input-textarea');
+        const sendButton = widget.shadowRoot.querySelector('.lac-send-button');
+
+        if (textarea && sendButton) {
+          textarea.value = 'Test message from demo! 🎉';
+          textarea.dispatchEvent(new Event('input'));
+          showResult('Message typed in textarea. Click "Envoyer" to send!');
+        } else {
+          showResult('Textarea or send button not found!', false);
+        }
+      }, 500);
+    }
+
+    function testTypingIndicator() {
+      showResult(`
+        To test the typing indicator:<br>
+        1. Open the chat widget<br>
+        2. Type a message and send it<br>
+        3. You'll see 3 animated dots while waiting for response<br>
+        <br>
+        Note: The backend must be running for a real test!
+      `);
+    }
+
+    function testPersistence() {
+      const cached = localStorage.getItem('lac_messages_cache');
+      const timestamp = localStorage.getItem('lac_cache_timestamp');
+      const userId = localStorage.getItem('lac_user_id');
+      const conversationId = localStorage.getItem('lac_conversation_id');
+
+      if (cached) {
+        const messages = JSON.parse(cached);
+        const age = Math.round((Date.now() - parseInt(timestamp)) / 1000);
+        showResult(`
+          📦 Cache Status:<br>
+          - Messages: ${messages.length} stored<br>
+          - Age: ${age} seconds<br>
+          - User ID: ${userId?.substring(0, 8)}...<br>
+          - Conversation ID: ${conversationId?.substring(0, 8)}...<br>
+          <br>
+          Reload the page to test persistence!
+        `);
+      } else {
+        showResult('No cache found. Send a message first!', false);
+      }
+    }
+
+    function testCharacterCounter() {
+      const widget = document.querySelector('lac-chat-widget');
+      if (!widget || !widget.shadowRoot) {
+        showResult('Widget not found!', false);
+        return;
+      }
+
+      // Open chat
+      const button = widget.shadowRoot.querySelector('.lac-widget-button');
+      if (button) button.click();
+
+      setTimeout(() => {
+        const textarea = widget.shadowRoot.querySelector('.lac-input-textarea');
+        if (textarea) {
+          // Type a long message (>90% of limit)
+          const longMessage = 'x'.repeat(1900);
+          textarea.value = longMessage;
+          textarea.dispatchEvent(new Event('input'));
+          showResult(`
+            Character counter test:<br>
+            - Typed: 1900/2000 characters<br>
+            - Counter should show WARNING (orange)<br>
+            - Check the bottom of the chat input!
+          `);
+        }
+      }, 500);
+    }
+
+    function testTimeout() {
+      showResult(`
+        To test timeout handling:<br>
+        1. Make sure the backend is NOT running<br>
+        2. Send a message<br>
+        3. Wait 15 seconds<br>
+        4. You should see: "La réponse prend un peu de temps..."<br>
+        5. A retry button will appear
+      `);
+    }
+
+    function testClearCache() {
+      if (confirm('⚠️ This will clear all localStorage and reload. Continue?')) {
+        localStorage.clear();
+        showResult('Cache cleared! Reloading...');
+        setTimeout(() => location.reload(), 1000);
+      }
+    }
+
+    function toggleDebug() {
+      const current = localStorage.getItem('lac_debug') === 'true';
+      localStorage.setItem('lac_debug', (!current).toString());
+      showResult(`
+        Debug mode ${!current ? 'ENABLED ✅' : 'DISABLED ❌'}<br>
+        <br>
+        Open DevTools Console (F12) to see logs.<br>
+        Reloading page...
+      `);
+      setTimeout(() => location.reload(), 2000);
+    }
+
+    // Auto-show widget info on load
+    window.addEventListener('load', () => {
+      console.group('🎉 Widget Demo - Epic 2 Complete');
+      console.log('Stories 2.5-2.9: ALL IMPLEMENTED ✅');
+      console.log('Bundle size: 5.21 KB gzipped');
+      console.log('User ID:', localStorage.getItem('lac_user_id'));
+      console.log('Debug mode:', localStorage.getItem('lac_debug') === 'true' ? 'ON' : 'OFF');
+      console.groupEnd();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,605 @@
+{
+  "name": "Chatbot L'Agence des Copines - Message Processing",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat",
+        "responseMode": "responseNode",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "POST, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              }
+            ]
+          }
+        }
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "chatbot-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract and validate webhook payload\nconst body = $input.item.json.body;\n\n// Validate required fields\nif (!body.userId || !body.conversationId || !body.message || !body.timestamp) {\n  return {\n    error: true,\n    message: 'Missing required fields',\n    missingFields: {\n      userId: !body.userId,\n      conversationId: !body.conversationId,\n      message: !body.message,\n      timestamp: !body.timestamp\n    }\n  };\n}\n\n// Validate message length\nif (body.message.trim().length === 0) {\n  return {\n    error: true,\n    message: 'Empty message',\n    errorType: 'INVALID_MESSAGE'\n  };\n}\n\nif (body.message.length > 2000) {\n  return {\n    error: true,\n    message: 'Message too long',\n    errorType: 'MESSAGE_TOO_LONG'\n  };\n}\n\n// Return validated data\nreturn {\n  userId: body.userId,\n  conversationId: body.conversationId,\n  message: body.message.trim(),\n  timestamp: body.timestamp,\n  error: false\n};"
+      },
+      "id": "validate-input",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.error }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "check-validation",
+      "name": "Check Validation",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ error: $json.message, type: $json.errorType || 'VALIDATION_ERROR', timestamp: new Date().toISOString() }) }}",
+        "options": {
+          "responseCode": 400,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              }
+            ]
+          }
+        }
+      },
+      "id": "error-response",
+      "name": "Error Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [850, 150]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=SELECT COUNT(*) as message_count FROM messages WHERE conversation_id = '{{ $json.conversationId }}' AND timestamp > NOW() - INTERVAL '1 minute' AND role = 'user'",
+        "options": {}
+      },
+      "id": "rate-limit-check",
+      "name": "Rate Limit Check",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [850, 300],
+      "credentials": {
+        "postgres": {
+          "id": "supabase-credentials",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Check if rate limit exceeded\nconst messageCount = parseInt($input.item.json.message_count || 0);\nconst rateLimit = parseInt($env.RATE_LIMIT_PER_MINUTE || 10);\n\nreturn {\n  exceeded: messageCount >= rateLimit,\n  count: messageCount,\n  limit: rateLimit,\n  ...$input.item.json\n};"
+      },
+      "id": "check-rate-limit",
+      "name": "Check Rate Limit",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.exceeded }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "is-rate-limited",
+      "name": "Is Rate Limited?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ error: 'Trop de messages envoyés. Attendez quelques instants.', type: 'RATE_LIMIT', timestamp: new Date().toISOString() }) }}",
+        "options": {
+          "responseCode": 429,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Retry-After",
+                "value": "60"
+              }
+            ]
+          }
+        }
+      },
+      "id": "rate-limit-response",
+      "name": "Rate Limit Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1450, 150]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=SELECT * FROM messages WHERE conversation_id = '{{ $json.conversationId }}' ORDER BY timestamp DESC LIMIT 10",
+        "options": {}
+      },
+      "id": "load-history",
+      "name": "Load Conversation History",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [1450, 450],
+      "credentials": {
+        "postgres": {
+          "id": "supabase-credentials",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Format conversation history for Claude\nconst messages = $input.all();\n\n// Reverse to get chronological order (oldest first)\nconst history = messages.reverse();\n\n// Format as Claude messages array\nconst formattedHistory = history.map(msg => ({\n  role: msg.json.role === 'user' ? 'user' : 'assistant',\n  content: msg.json.content\n}));\n\n// Count user messages for loop detection\nconst userMessageCount = formattedHistory.filter(m => m.role === 'user').length;\n\n// Get original data from first item\nconst originalData = $input.first().json;\n\nreturn {\n  conversationHistory: formattedHistory,\n  userMessageCount: userMessageCount,\n  userId: originalData.userId,\n  conversationId: originalData.conversationId,\n  message: originalData.message,\n  timestamp: originalData.timestamp\n};"
+      },
+      "id": "format-history",
+      "name": "Format History",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1650, 450]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Keyword-based agent router\nconst message = $json.message.toLowerCase();\n\n// Creation keywords\nconst creationKeywords = ['création', 'contenu', 'instagram', 'branding', 'post', 'réseaux sociaux', 'reels', 'stories', 'visuel', 'design'];\n\n// Automation keywords\nconst automationKeywords = ['automatisation', 'tunnel', 'vente', 'technique', 'email', 'funnel', 'automation', 'workflow', 'zapier', 'intégration'];\n\n// Check for keyword matches\nconst hasCreationKeyword = creationKeywords.some(keyword => message.includes(keyword));\nconst hasAutomationKeyword = automationKeywords.some(keyword => message.includes(keyword));\n\n// Determine agent type\nlet agentType = 'creation'; // Default fallback\nif (hasAutomationKeyword && !hasCreationKeyword) {\n  agentType = 'automation';\n}\n\nreturn {\n  ...$json,\n  agentType: agentType,\n  routingReason: hasCreationKeyword ? 'creation_keyword' : hasAutomationKeyword ? 'automation_keyword' : 'default_fallback'\n};"
+      },
+      "id": "agent-router",
+      "name": "Agent Router",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1850, 450]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.agentType }}",
+              "value2": "creation"
+            }
+          ]
+        }
+      },
+      "id": "route-to-agent",
+      "name": "Route to Agent",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [2050, 450]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Creation Agent System Prompt\nconst systemPrompt = `Tu es un expert en création de contenu pour L'Agence des Copines. Tu aides les professionnels du bien-être à développer leur stratégie Instagram, créer du contenu engageant, et construire leur marque.\n\nTu es chaleureuse, empathique et parles français en utilisant \"tu\". Tu donnes des conseils concrets et actionnables.\n\nContexte de l'utilisateur:\n- Professionnels du bien-être (coachs, thérapeutes, etc.)\n- Cherchent à développer leur présence sur Instagram\n- Ont besoin de stratégies de contenu et de branding\n\nTon objectif:\n- Donner des conseils pratiques et immédiatement applicables\n- Encourager et motiver\n- Suggérer des idées de contenu créatives`;\n\nconst conversationHistory = $json.conversationHistory || [];\nconst userMessage = $json.message;\nconst ragResults = ''; // Placeholder for Epic 4\n\n// Build messages array for Claude\nconst messages = [\n  ...conversationHistory,\n  {\n    role: 'user',\n    content: userMessage\n  }\n];\n\nreturn {\n  ...$json,\n  systemPrompt: systemPrompt,\n  messages: messages,\n  ragResults: ragResults\n};"
+      },
+      "id": "creation-agent-prompt",
+      "name": "Creation Agent Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2250, 350]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Automation Agent System Prompt\nconst systemPrompt = `Tu es un expert en automatisation et tunnels de vente pour L'Agence des Copines. Tu aides les professionnels du bien-être à configurer leurs funnels, automatiser leur marketing, et optimiser leurs outils techniques.\n\nTu es claire, précise et parles français en utilisant \"tu\". Tu donnes des instructions techniques étape par étape.\n\nContexte de l'utilisateur:\n- Professionnels du bien-être cherchant à automatiser\n- Besoin de configurer des tunnels de vente\n- Questions sur les outils techniques (Kajabi, email, etc.)\n\nTon objectif:\n- Donner des instructions claires et techniques\n- Expliquer les processus étape par étape\n- Recommander les meilleurs outils et pratiques`;\n\nconst conversationHistory = $json.conversationHistory || [];\nconst userMessage = $json.message;\nconst ragResults = ''; // Placeholder for Epic 4\n\n// Build messages array for Claude\nconst messages = [\n  ...conversationHistory,\n  {\n    role: 'user',\n    content: userMessage\n  }\n];\n\nreturn {\n  ...$json,\n  systemPrompt: systemPrompt,\n  messages: messages,\n  ragResults: ragResults\n};"
+      },
+      "id": "automation-agent-prompt",
+      "name": "Automation Agent Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2250, 550]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": []
+        },
+        "jsonBody": "={{ JSON.stringify({\n  model: 'claude-3-5-sonnet-20241022',\n  max_tokens: 1000,\n  temperature: 0.7,\n  system: $json.systemPrompt,\n  messages: $json.messages\n}) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "claude-api-call",
+      "name": "Claude API Call",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2450, 450],
+      "credentials": {
+        "anthropicApi": {
+          "id": "anthropic-credentials",
+          "name": "Anthropic Claude API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract Claude's response\nconst response = $json;\n\nlet botMessage = '';\nlet errorOccurred = false;\n\n// Check for API error\nif (response.error) {\n  errorOccurred = true;\n  botMessage = \"Désolée, je rencontre un petit souci technique. Réessaie dans un instant !\";\n} else {\n  // Extract response text\n  botMessage = response.content[0].text;\n}\n\n// Get original data\nconst originalData = $input.first().json;\n\nreturn {\n  userId: originalData.userId,\n  conversationId: originalData.conversationId,\n  userMessage: originalData.message,\n  botMessage: botMessage,\n  agentType: originalData.agentType,\n  timestamp: new Date().toISOString(),\n  errorOccurred: errorOccurred,\n  conversationHistory: originalData.conversationHistory || [],\n  userMessageCount: originalData.userMessageCount || 0\n};"
+      },
+      "id": "parse-response",
+      "name": "Parse Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2650, 450]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop detection logic\nconst userMessageCount = $json.userMessageCount || 0;\nconst conversationHistory = $json.conversationHistory || [];\n\nlet loopDetected = false;\nlet upsellMessage = '';\n\n// Check if enough messages for loop detection\nif (userMessageCount >= 6) {\n  // Get last 3 user messages\n  const recentUserMessages = conversationHistory\n    .filter(m => m.role === 'user')\n    .slice(-3)\n    .map(m => m.content.toLowerCase());\n\n  if (recentUserMessages.length === 3) {\n    // Simple keyword overlap similarity\n    const allWords = recentUserMessages.join(' ').split(/\\s+/);\n    const uniqueWords = new Set(allWords);\n    const similarityScore = 1 - (uniqueWords.size / allWords.length);\n\n    if (similarityScore >= 0.8) {\n      loopDetected = true;\n      upsellMessage = \"\\n\\nTu as beaucoup de questions approfondies ! 🎉 Notre formation pourrait t'intéresser pour un accompagnement personnalisé. Contacte-nous pour en savoir plus.\";\n    }\n  }\n}\n\nreturn {\n  ...$json,\n  loopDetected: loopDetected,\n  upsellMessage: upsellMessage,\n  finalBotMessage: $json.botMessage + upsellMessage\n};"
+      },
+      "id": "loop-detection",
+      "name": "Loop Detection",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2850, 450]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=INSERT INTO conversations (id, user_id, last_message_at, status, created_at) VALUES ('{{ $json.conversationId }}', '{{ $json.userId }}', NOW(), '{{ $json.loopDetected ? \"upsell_opportunity\" : \"active\" }}', NOW()) ON CONFLICT (id) DO UPDATE SET last_message_at = NOW(), status = '{{ $json.loopDetected ? \"upsell_opportunity\" : \"active\" }}'",
+        "options": {}
+      },
+      "id": "save-conversation",
+      "name": "Save Conversation",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [3050, 350],
+      "credentials": {
+        "postgres": {
+          "id": "supabase-credentials",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=INSERT INTO messages (conversation_id, role, content, timestamp, created_at) VALUES ('{{ $json.conversationId }}', 'user', '{{ $json.userMessage }}', '{{ $json.timestamp }}', NOW())",
+        "options": {}
+      },
+      "id": "save-user-message",
+      "name": "Save User Message",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [3050, 450],
+      "credentials": {
+        "postgres": {
+          "id": "supabase-credentials",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=INSERT INTO messages (conversation_id, role, content, agent_type, timestamp, created_at) VALUES ('{{ $json.conversationId }}', 'assistant', '{{ $json.finalBotMessage }}', '{{ $json.agentType }}', '{{ $json.timestamp }}', NOW())",
+        "options": {}
+      },
+      "id": "save-bot-message",
+      "name": "Save Bot Message",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.4,
+      "position": [3050, 550],
+      "credentials": {
+        "postgres": {
+          "id": "supabase-credentials",
+          "name": "Supabase PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({\n  response: $json.finalBotMessage,\n  agentType: $json.agentType,\n  conversationId: $json.conversationId,\n  timestamp: $json.timestamp,\n  loopDetected: $json.loopDetected\n}) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "success-response",
+      "name": "Success Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [3250, 450]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Validate Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Input": {
+      "main": [
+        [
+          {
+            "node": "Check Validation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Validation": {
+      "main": [
+        [
+          {
+            "node": "Error Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Rate Limit Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rate Limit Check": {
+      "main": [
+        [
+          {
+            "node": "Check Rate Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Rate Limit": {
+      "main": [
+        [
+          {
+            "node": "Is Rate Limited?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Rate Limited?": {
+      "main": [
+        [
+          {
+            "node": "Rate Limit Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Load Conversation History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Conversation History": {
+      "main": [
+        [
+          {
+            "node": "Format History",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format History": {
+      "main": [
+        [
+          {
+            "node": "Agent Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Router": {
+      "main": [
+        [
+          {
+            "node": "Route to Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route to Agent": {
+      "main": [
+        [
+          {
+            "node": "Creation Agent Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Automation Agent Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Creation Agent Prompt": {
+      "main": [
+        [
+          {
+            "node": "Claude API Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Automation Agent Prompt": {
+      "main": [
+        [
+          {
+            "node": "Claude API Call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude API Call": {
+      "main": [
+        [
+          {
+            "node": "Parse Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Response": {
+      "main": [
+        [
+          {
+            "node": "Loop Detection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Detection": {
+      "main": [
+        [
+          {
+            "node": "Save Conversation",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Save User Message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Save Bot Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Conversation": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save User Message": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Bot Message": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2025-11-03T00:00:00.000Z",
+  "versionId": "1.0.0"
+}

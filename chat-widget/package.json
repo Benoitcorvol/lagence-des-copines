@@ -1,0 +1,23 @@
+{
+  "name": "lac-chat-widget",
+  "version": "1.0.0",
+  "description": "L'Agence des Copines - AI Chat Widget",
+  "main": "src/widget.js",
+  "scripts": {
+    "build": "terser src/widget.js -c -m -o dist/widget.min.js --source-map \"url=widget.js.map\"",
+    "dev": "python3 -m http.server 8000",
+    "test": "open test/test.html || xdg-open test/test.html"
+  },
+  "keywords": [
+    "chat",
+    "widget",
+    "ai",
+    "chatbot"
+  ],
+  "author": "L'Agence des Copines",
+  "license": "UNLICENSED",
+  "private": true,
+  "devDependencies": {
+    "terser": "^5.34.1"
+  }
+}

@@ -1,0 +1,91 @@
+# generated: 2025-11-03
+# project: Chatbot
+# project_key: Chatbot
+# tracking_system: file-system
+# story_location: {project-root}/docs/stories
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic exists in epic file but not contexted
+#   - contexted: Epic tech context created (required before drafting stories)
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - drafted: Story file created in stories folder
+#   - ready-for-dev: Draft approved and story context created
+#   - in-progress: Developer actively working on implementation
+#   - review: Under SM review (via code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - completed: Retrospective has been done
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epics should be 'contexted' before stories can be 'drafted'
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically drafts next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', SM reviews, then Dev moves to 'done'
+
+generated: 2025-11-03
+project: Chatbot
+project_key: Chatbot
+tracking_system: file-system
+story_location: "{project-root}/docs/stories"
+
+development_status:
+  # Epic 1: Infrastructure & Development Environment - ✅ COMPLETED
+  epic-1: done
+  1-1-provision-and-configure-hostinger-vps: done  # VPS 147.79.100.35 configured
+  1-2-configure-dns-and-ssl-certificate: done  # Nginx + Certbot installed
+  1-3-deploy-n8n-via-docker-compose: done  # n8n + Redis running (healthy)
+  1-4-configure-nginx-reverse-proxy: done  # Nginx configured (SSL pending)
+  1-5-create-supabase-project-and-database-schema: done  # Supabase tqwmtrhfzaugkrwjcofq + pgvector + tables created
+  1-6-setup-local-widget-development-environment: done  # Structure + test.html created
+  epic-1-retrospective: optional
+
+  # Epic 2: Chat Widget UI
+  epic-2: backlog
+  2-1-create-widget-foundation-with-shadow-dom: backlog
+  2-2-implement-floating-button-ui: backlog
+  2-3-build-desktop-chat-popup-interface: backlog
+  2-4-implement-mobile-fullscreen-mode: backlog
+  2-5-implement-message-send-receive-ui: backlog
+  2-6-add-typing-indicator-animation: backlog
+  2-7-implement-localstorage-persistence: backlog
+  2-8-implement-error-handling-ui: backlog
+  2-9-implement-api-communication-to-n8n: backlog
+  2-10-build-and-deploy-production-widget: backlog
+  2-11-create-kajabi-integration-script: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: n8n AI Orchestration Backend
+  epic-3: backlog
+  3-1-create-main-webhook-endpoint-workflow: backlog
+  3-2-implement-rate-limiting-logic: backlog
+  3-3-load-conversation-history-from-supabase: backlog
+  3-4-implement-keyword-router-for-agent-selection: backlog
+  3-5-create-creation-agent-workflow-branch: backlog
+  3-6-create-automation-agent-workflow-branch: backlog
+  3-7-integrate-claude-api: backlog
+  3-8-implement-rag-query-pipeline-placeholder: backlog
+  3-9-implement-loop-detection-logic: backlog
+  3-10-save-messages-to-supabase: backlog
+  3-11-return-response-to-widget: backlog
+  3-12-test-and-optimize-workflow-performance: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: RAG Knowledge Base & Testing
+  epic-4: backlog
+  4-1-create-document-ingestion-script-multi-format: backlog
+  4-2-implement-text-chunking-and-embedding-generation: backlog
+  4-3-save-chunks-and-embeddings-to-supabase-pgvector: backlog
+  4-4-implement-full-rag-query-in-n8n-workflow: backlog
+  4-5-upload-initial-client-content: backlog
+  4-6-end-to-end-integration-testing: backlog
+  4-7-performance-optimization-and-load-testing: backlog
+  4-8-production-deployment-and-go-live: backlog
+  4-9-create-monitoring-and-maintenance-documentation: backlog
+  epic-4-retrospective: optional

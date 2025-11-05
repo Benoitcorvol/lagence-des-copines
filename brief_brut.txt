@@ -1,0 +1,61 @@
+Objectif:
+Agent IA pour accompagner 3000 collaborateurs santé/bien-être dans leur stratégie e-commerce et Instagram.
+Deliverables V1:
+1. Widget Chat (Style Intercom)
+
+Bouton floating bottom-right
+Click → popup chat s'ouvre
+Si conversation active → continue automatiquement
+Sinon → nouvelle conversation auto-créée
+Responsive (adapt mobile/desktop)
+Embeddable via script tag dans Kajabi
+Hébergement Hostinger VPS
+
+2. Backend n8n (Hostinger Docker)
+
+Webhook endpoint pour messages
+Router intelligent → 2 agents (Création vs Automation)
+Query RAG (Supabase pgvector)
+Reranker Cohere (top 20 → top 3)
+Appel Claude API avec contexte complet
+Save conversations + mémoire user
+
+3. Base de Données Supabase
+
+Table users (id, email, name)
+Table conversations (id, user_id, created_at, last_message_at)
+Table messages (id, conversation_id, role, content, timestamp)
+Table user_context (user_id, preferences, history)
+Table documents (id, content, embedding via pgvector)
+
+4. Système RAG
+
+Ingestion e-books/PDFs/formations cliente
+Chunking + embeddings (OpenAI)
+Storage pgvector Supabase
+Query sémantique + rerank Cohere
+
+5. Agents IA
+
+Agent 1: Création (contenu, stratégie IG, branding)
+Agent 2: Automation (tunnels vente, tech, outils)
+Router keywords-based dans n8n
+Prompts Claude optimisés par agent
+Mémoire conversationnelle (10 derniers messages)
+
+Contraintes:
+
+Support 50 users simultanés minimum
+Temps réponse < 10 secondes
+Coûts infra < 120€/mois
+
+Livrables:
+
+Code widget embeddable
+Backend n8n complet
+Documentation déploiement
+Guide admin (ajout contenus RAG)
+
+Budget: 2 500€
+Timeline: 5 jours
+agence : https://lagencedescopines.mykajabi.com/lescopinesdigitales

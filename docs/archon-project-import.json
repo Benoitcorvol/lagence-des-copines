@@ -1,0 +1,833 @@
+{
+  "project": {
+    "name": "Chatbot L'Agence des Copines",
+    "key": "CHATBOT_LAC",
+    "description": "AI Chatbot for L'Agence des Copines with Kajabi integration - Dual-agent system (Creation/Automation) with RAG knowledge base, n8n orchestration, and Vanilla JS widget",
+    "type": "software",
+    "level": 3,
+    "fieldType": "greenfield",
+    "startDate": "2025-11-03",
+    "timeline": "5 days",
+    "budget": "2,500€ development + 120€/month operational",
+    "constraints": {
+      "timeline": "5 days strict deadline",
+      "budget": "120€/month operational cost cap",
+      "performance": "<10s response time, 50 concurrent users",
+      "platform": "Must embed in Kajabi without conflicts"
+    },
+    "techStack": [
+      "Vanilla JavaScript (ES6+)",
+      "Shadow DOM",
+      "n8n (Docker)",
+      "Supabase (PostgreSQL + pgvector)",
+      "Claude 3.5 Sonnet API",
+      "OpenAI Embeddings",
+      "Cohere Reranking",
+      "Nginx",
+      "Hostinger VPS",
+      "Let's Encrypt SSL"
+    ],
+    "documentation": {
+      "architecture": "/Users/benoitcorvol/chatbot/chatbot/docs/architecture.md",
+      "techSpec": "/Users/benoitcorvol/chatbot/chatbot/docs/technical-spec-Agent-IA-L-Agence-des-Copines-2025-11-03.md",
+      "prd": "/Users/benoitcorvol/chatbot/chatbot/docs/PRD.md",
+      "epics": "/Users/benoitcorvol/chatbot/chatbot/docs/epics.md",
+      "testPlan": "/Users/benoitcorvol/chatbot/chatbot/docs/test-design-full-project.md",
+      "sprintStatus": "/Users/benoitcorvol/chatbot/chatbot/docs/sprint-status.yaml"
+    },
+    "epics": [
+      {
+        "id": "epic-1",
+        "name": "Infrastructure & Development Environment",
+        "description": "Establish production-ready infrastructure on Hostinger VPS with Docker, n8n, Supabase, and SSL configuration. Create local development environment for widget building.",
+        "goal": "Operational infrastructure ready for immediate widget and workflow deployment",
+        "status": "backlog",
+        "priority": "critical",
+        "estimatedDays": 1,
+        "tasks": [
+          {
+            "id": "1-1",
+            "key": "1-1-provision-and-configure-hostinger-vps",
+            "title": "Provision and Configure Hostinger VPS",
+            "description": "As a developer, I want to provision a Hostinger VPS with Ubuntu 22.04 and install Docker, so that I have a production environment ready for deployment.",
+            "acceptanceCriteria": [
+              "Hostinger VPS 4 provisioned (4 vCPU, 8GB RAM, 100GB SSD)",
+              "Ubuntu 22.04 LTS installed",
+              "Docker and Docker Compose installed and verified",
+              "SSH access configured with key-based authentication",
+              "Firewall configured (ports 22, 80, 443 open)",
+              "Server timezone set to Europe/Paris"
+            ],
+            "status": "backlog",
+            "priority": "critical",
+            "estimatedHours": 2,
+            "prerequisites": []
+          },
+          {
+            "id": "1-2",
+            "key": "1-2-configure-dns-and-ssl-certificate",
+            "title": "Configure DNS and SSL Certificate",
+            "description": "As a developer, I want to configure chat.lagencedescopines.com DNS and obtain SSL certificate, so that the widget can be served securely over HTTPS.",
+            "acceptanceCriteria": [
+              "DNS A record created: chat.lagencedescopines.com → VPS IP",
+              "Nginx installed and running",
+              "Let's Encrypt SSL certificate obtained via Certbot",
+              "HTTPS works: https://chat.lagencedescopines.com/health returns 200 OK",
+              "Auto-renewal configured (certbot systemd timer active)",
+              "HTTP → HTTPS redirect configured"
+            ],
+            "status": "backlog",
+            "priority": "critical",
+            "estimatedHours": 2,
+            "prerequisites": ["1-1"]
+          },
+          {
+            "id": "1-3",
+            "key": "1-3-deploy-n8n-via-docker-compose",
+            "title": "Deploy n8n via Docker Compose",
+            "description": "As a developer, I want to deploy n8n in a Docker container with persistent storage, so that I can build AI orchestration workflows.",
+            "acceptanceCriteria": [
+              "docker-compose.yml created with n8n service configuration",
+              ".env file created with N8N_USER, N8N_PASSWORD",
+              "n8n container running and accessible at https://chat.lagencedescopines.com/n8n/",
+              "n8n basic auth working (login with credentials)",
+              "Persistent volume mounted for workflow storage (/home/node/.n8n)",
+              "Webhook URL configured: https://chat.lagencedescopines.com"
+            ],
+            "status": "backlog",
+            "priority": "critical",
+            "estimatedHours": 2,
+            "prerequisites": ["1-2"]
+          },
+          {
+            "id": "1-4",
+            "key": "1-4-configure-nginx-reverse-proxy",
+            "title": "Configure Nginx Reverse Proxy",
+            "description": "As a developer, I want Nginx to route /webhook/ to n8n and serve static widget files, so that the widget and backend can communicate.",
+            "acceptanceCriteria": [
+              "Nginx config created: /etc/nginx/sites-available/chat.lagencedescopines.com",
+              "Static file route: /widget.js → /var/www/chat-widget/dist/widget.min.js",
+              "Webhook proxy: /webhook/* → n8n (127.0.0.1:5678)",
+              "Admin proxy: /n8n/ → n8n admin interface",
+              "CORS headers configured for Kajabi origin",
+              "GZIP compression enabled for widget.js",
+              "Health check endpoint: /health returns OK"
+            ],
+            "status": "backlog",
+            "priority": "critical",
+            "estimatedHours": 2,
+            "prerequisites": ["1-3"]
+          },
+          {
+            "id": "1-5",
+            "key": "1-5-create-supabase-project-and-database-schema",
+            "title": "Create Supabase Project and Database Schema",
+            "description": "As a developer, I want a Supabase PostgreSQL database with pgvector extension, so that I can store conversations and RAG embeddings.",
+            "acceptanceCriteria": [
+              "Supabase project created (Pro tier, ~25€/month)",
+              "pgvector extension enabled",
+              "Tables created: users, conversations, messages, documents, document_chunks",
+              "Vector index created on document_chunks.embedding (ivfflat, cosine similarity)",
+              "RLS policies configured (permissive for MVP - service key usage)",
+              "Connection tested from n8n (Supabase credentials in .env)",
+              "Database migration SQL files saved to /docs/migrations/"
+            ],
+            "status": "backlog",
+            "priority": "critical",
+            "estimatedHours": 3,
+            "prerequisites": []
+          },
+          {
+            "id": "1-6",
+            "key": "1-6-setup-local-widget-development-environment",
+            "title": "Setup Local Widget Development Environment",
+            "description": "As a developer, I want a local development environment with build tools, so that I can develop and test the widget locally before deployment.",
+            "acceptanceCriteria": [
+              "Project structure created: /var/www/chat-widget/{src,dist,test}",
+              "package.json created with Terser dependency",
+              "Build script created: build.sh (minifies src/widget.js → dist/widget.min.js)",
+              "test.html created for local browser testing",
+              "Local Python HTTP server documented (python3 -m http.server 8000)",
+              "README.md with setup instructions",
+              ".gitignore configured (node_modules, dist/*.map)"
+            ],
+            "status": "backlog",
+            "priority": "high",
+            "estimatedHours": 2,
+            "prerequisites": ["1-1"]
+          }
+        ]
+      },
+      {
+        "id": "epic-2",
+        "name": "Chat Widget UI",
+        "description": "Build a lightweight, brand-matched chat widget using Vanilla JavaScript and Shadow DOM that embeds seamlessly in Kajabi without conflicts. Optimized for <50kb bundle size and <2s load time.",
+        "goal": "Fully functional chat interface ready for Kajabi embedding",
+        "status": "backlog",
+        "priority": "critical",
+        "estimatedDays": 2,
+        "tasks": [
+          {
+            "id": "2-1",
+            "key": "2-1-create-widget-foundation-with-shadow-dom",
+            "title": "Create Widget Foundation with Shadow DOM",
+            "description": "As a developer, I want a Web Component with Shadow DOM encapsulation, so that the widget styles don't conflict with Kajabi.",
+            "acceptanceCriteria": [
+              "widget.js created with IIFE wrapping",
+              "Custom element defined: <lac-chat-widget>",
+              "Shadow DOM attached (mode: 'open')",
+              "Auto-injection on DOMContentLoaded",
+              "All CSS scoped with .lac- prefix",
+              "Test in test.html - no style leakage to parent page",
+              "Basic structure renders: container div visible"
+            ],
+            "status": "backlog",
+            "priority": "critical",
+            "estimatedHours": 3,
+            "prerequisites": ["1-6"]
+          },
+          {
+            "id": "2-2",
+            "key": "2-2-implement-floating-button-ui",
+            "title": "Implement Floating Button UI",
+            "description": "As a user, I want to see a floating chat button in the bottom-right corner, so that I can open the chat interface.",
+            "acceptanceCriteria": [
+              "Floating button rendered: 60x60px, bottom-right (20px margins)",
+              "Brand color applied: background #f29b9b (rose)",
+              "Icon displayed: chat bubble SVG (white color)",
+              "Hover effect: subtle scale animation (1.05x)",
+              "Click opens chat interface (toggle)",
+              "Accessibility: ARIA label 'Ouvrir le chat', keyboard focusable",
+              "Mobile responsive: visible on all screen sizes"
+            ],
+            "status": "backlog",
+            "priority": "critical",
+            "estimatedHours": 2,
+            "prerequisites": ["2-1"]
+          },
+          {
+            "id": "2-3",
+            "key": "2-3-build-desktop-chat-popup-interface",
+            "title": "Build Desktop Chat Popup Interface",
+            "description": "As a user, I want a popup chat window when I click the button on desktop, so that I can have a conversation without leaving the page.",
+            "acceptanceCriteria": [
+              "Chat container: 400x600px popup, positioned bottom-right",
+              "Slide-up animation on open (300ms CSS transition)",
+              "Header: 'L'Agence des Copines' title + close button (X)",
+              "Messages area: scrollable div with #f7f7f8 background",
+              "Input area: textarea + send button (fixed at bottom)",
+              "Close button click → popup closes, button remains visible",
+              "Visual design matches brand (rose/brun colors, 15px border-radius)"
+            ],
+            "status": "backlog",
+            "priority": "critical",
+            "estimatedHours": 4,
+            "prerequisites": ["2-2"]
+          },
+          {
+            "id": "2-4",
+            "key": "2-4-implement-mobile-fullscreen-mode",
+            "title": "Implement Mobile Fullscreen Mode",
+            "description": "As a mobile user, I want the chat to open fullscreen on my phone, so that I have maximum space for conversation.",
+            "acceptanceCriteria": [
+              "Media query: @media (max-width: 767px)",
+              "Fullscreen overlay: 100vw x 100vh, slide-up from bottom",
+              "Header with close button (X) - fixed at top",
+              "Messages area: flexible height, scrollable",
+              "Input area: fixed at bottom, keyboard-friendly (viewport height adapts)",
+              "Messages stay visible above keyboard when focused",
+              "Smooth transitions on open/close"
+            ],
+            "status": "backlog",
+            "priority": "high",
+            "estimatedHours": 3,
+            "prerequisites": ["2-3"]
+          },
+          {
+            "id": "2-5",
+            "key": "2-5-implement-message-send-receive-ui",
+            "title": "Implement Message Send/Receive UI",
+            "description": "As a user, I want to type messages and see them displayed in the chat, so that I can have a visual conversation.",
+            "acceptanceCriteria": [
+              "User types in textarea (max 2000 characters, counter displayed)",
+              "Send button click OR Enter key → message sent",
+              "User message bubble: right-aligned, rose background (#f29b9b), white text",
+              "Bot message bubble: left-aligned, white background, dark text (#333)",
+              "Messages auto-scroll to bottom on new message",
+              "Empty message blocked (send button disabled if textarea empty)",
+              "Timestamp displayed below each message (HH:MM format)"
+            ],
+            "status": "backlog",
+            "priority": "critical",
+            "estimatedHours": 4,
+            "prerequisites": ["2-4"]
+          },
+          {
+            "id": "2-6",
+            "key": "2-6-add-typing-indicator-animation",
+            "title": "Add Typing Indicator Animation",
+            "description": "As a user, I want to see a typing indicator when the bot is processing, so that I know my message was received.",
+            "acceptanceCriteria": [
+              "Typing indicator component: 3 animated dots (rose color)",
+              "Appears immediately when user sends message",
+              "CSS animation: bouncing dots (stagger delay)",
+              "Positioned as bot message bubble (left-aligned)",
+              "Removed when bot response received",
+              "Accessible: aria-live='polite' region announces 'Assistant is typing'"
+            ],
+            "status": "backlog",
+            "priority": "high",
+            "estimatedHours": 2,
+            "prerequisites": ["2-5"]
+          },
+          {
+            "id": "2-7",
+            "key": "2-7-implement-localstorage-persistence",
+            "title": "Implement localStorage Persistence",
+            "description": "As a user, I want my conversation to persist when I refresh the page, so that I don't lose my chat history.",
+            "acceptanceCriteria": [
+              "On first visit: generate UUID for userId (lac_user_id)",
+              "On first message: generate UUID for conversationId (lac_conversation_id)",
+              "Save to localStorage: userId, conversationId, messages array",
+              "On page load: restore conversation from localStorage if exists",
+              "Messages render from cache instantly (<100ms)",
+              "Cache timestamp stored (lac_cache_timestamp)",
+              "Cache expires after 5 minutes (fresh fetch from backend if older)"
+            ],
+            "status": "backlog",
+            "priority": "critical",
+            "estimatedHours": 3,
+            "prerequisites": ["2-5"]
+          },
+          {
+            "id": "2-8",
+            "key": "2-8-implement-error-handling-ui",
+            "title": "Implement Error Handling UI",
+            "description": "As a user, I want clear error messages when something fails, so that I know what to do next.",
+            "acceptanceCriteria": [
+              "Network error → Show: 'Oups, problème de connexion. Peux-tu réessayer ?'",
+              "Timeout error → Show: 'La réponse prend un peu de temps... Peux-tu renvoyer ton message ?'",
+              "Rate limit → Show: 'Tu as envoyé beaucoup de messages ! Attends quelques instants.'",
+              "Error message displayed as bot bubble (yellow/orange background for visibility)",
+              "Retry button displayed below error message",
+              "Retry button click → resend last user message",
+              "Auto-retry once (silent, 2s delay) before showing error"
+            ],
+            "status": "backlog",
+            "priority": "high",
+            "estimatedHours": 3,
+            "prerequisites": ["2-5"]
+          },
+          {
+            "id": "2-9",
+            "key": "2-9-implement-api-communication-to-n8n",
+            "title": "Implement API Communication to n8n",
+            "description": "As a developer, I want the widget to send messages to n8n webhook and receive responses, so that the chat can communicate with the AI backend.",
+            "acceptanceCriteria": [
+              "POST to https://chat.lagencedescopines.com/webhook/chat",
+              "Request body: {conversationId, userId, message, timestamp (ISO 8601)}",
+              "Content-Type: application/json",
+              "Timeout: 15 seconds (AbortSignal)",
+              "Success (200) → Parse response, display bot message",
+              "Error (4xx, 5xx) → Trigger error handling (Story 2.8)",
+              "Response format validated: {response, agentType, conversationId, timestamp}"
+            ],
+            "status": "backlog",
+            "priority": "critical",
+            "estimatedHours": 3,
+            "prerequisites": ["2-8", "epic-1"]
+          },
+          {
+            "id": "2-10",
+            "key": "2-10-build-and-deploy-production-widget",
+            "title": "Build and Deploy Production Widget",
+            "description": "As a developer, I want a minified, production-ready widget bundle, so that it loads quickly on Kajabi (<2s).",
+            "acceptanceCriteria": [
+              "Run build.sh → Terser minifies src/widget.js",
+              "Output: dist/widget.min.js + dist/widget.js.map",
+              "Bundle size: <50kb gzipped (verify with gzip -c widget.min.js | wc -c)",
+              "Source map generated for debugging",
+              "Upload to VPS: /var/www/chat-widget/dist/",
+              "Nginx serves at https://chat.lagencedescopines.com/widget.js",
+              "Test in browser: script loads in <2 seconds"
+            ],
+            "status": "backlog",
+            "priority": "critical",
+            "estimatedHours": 2,
+            "prerequisites": ["2-1", "2-2", "2-3", "2-4", "2-5", "2-6", "2-7", "2-8", "2-9"]
+          },
+          {
+            "id": "2-11",
+            "key": "2-11-create-kajabi-integration-script",
+            "title": "Create Kajabi Integration Script",
+            "description": "As a site owner, I want simple instructions to embed the widget in Kajabi, so that I can activate the chatbot.",
+            "acceptanceCriteria": [
+              "README.md created with integration instructions",
+              "Kajabi embed code: <script src='https://chat.lagencedescopines.com/widget.js' async></script>",
+              "Instructions: Add to Site Settings → Custom Code → Footer",
+              "Screenshot/video tutorial created (optional but helpful)",
+              "Tested on staging Kajabi site",
+              "No visual conflicts observed with Kajabi theme",
+              "Widget loads and functions correctly on Kajabi"
+            ],
+            "status": "backlog",
+            "priority": "high",
+            "estimatedHours": 2,
+            "prerequisites": ["2-10"]
+          }
+        ]
+      },
+      {
+        "id": "epic-3",
+        "name": "n8n AI Orchestration Backend",
+        "description": "Implement the intelligent heart of the system: n8n workflows that receive messages, route to specialized agents (Creation/Automation), query RAG knowledge base, call Claude API, detect conversation loops, and persist data.",
+        "goal": "Fully functional AI backend with dual-agent routing and RAG integration",
+        "status": "backlog",
+        "priority": "critical",
+        "estimatedDays": 1.5,
+        "tasks": [
+          {
+            "id": "3-1",
+            "key": "3-1-create-main-webhook-endpoint-workflow",
+            "title": "Create Main Webhook Endpoint Workflow",
+            "description": "As a developer, I want an n8n webhook that receives messages from the widget, so that I can start processing conversations.",
+            "acceptanceCriteria": [
+              "New n8n workflow created: 'Message Processing'",
+              "Webhook node added: POST /webhook/chat",
+              "Input validation node: check conversationId, userId, message, timestamp",
+              "Invalid input → Return 400 error with message",
+              "Valid input → Extract variables, pass to next node",
+              "Test with curl: successful 200 response",
+              "Workflow activated and saved"
+            ],
+            "status": "backlog",
+            "priority": "critical",
+            "estimatedHours": 2,
+            "prerequisites": ["1-3"]
+          },
+          {
+            "id": "3-2",
+            "key": "3-2-implement-rate-limiting-logic",
+            "title": "Implement Rate Limiting Logic",
+            "description": "As a system, I want to limit users to 10 messages per minute, so that API costs stay under budget and abuse is prevented.",
+            "acceptanceCriteria": [
+              "Supabase query node: count messages from conversationId in last 60 seconds",
+              "If count >= 10 → Return 429 error: 'Trop de messages envoyés. Attendez quelques instants.'",
+              "If count < 10 → Continue workflow",
+              "Rate limit configurable via environment variable (RATE_LIMIT_PER_MINUTE)",
+              "Test: Send 11 messages rapidly → 11th returns 429",
+              "Counter resets after 60 seconds"
+            ],
+            "status": "backlog",
+            "priority": "high",
+            "estimatedHours": 2,
+            "prerequisites": ["3-1", "1-5"]
+          },
+          {
+            "id": "3-3",
+            "key": "3-3-load-conversation-history-from-supabase",
+            "title": "Load Conversation History from Supabase",
+            "description": "As a developer, I want to load the last 10 messages from a conversation, so that the AI has context for generating responses.",
+            "acceptanceCriteria": [
+              "Supabase query node: SELECT * FROM messages WHERE conversation_id = ? ORDER BY timestamp DESC LIMIT 10",
+              "Results reversed (oldest first for context)",
+              "Format as array: [{role: 'user', content: '...'}, {role: 'assistant', content: '...'}]",
+              "Empty conversation → Return empty array (first message)",
+              "History passed to next node as context variable",
+              "Test: Create conversation with 15 messages → Only last 10 loaded"
+            ],
+            "status": "backlog",
+            "priority": "critical",
+            "estimatedHours": 2,
+            "prerequisites": ["3-1", "1-5"]
+          },
+          {
+            "id": "3-4",
+            "key": "3-4-implement-keyword-router-for-agent-selection",
+            "title": "Implement Keyword Router for Agent Selection",
+            "description": "As a system, I want to analyze the user's message and route to the appropriate agent, so that users get specialized expertise.",
+            "acceptanceCriteria": [
+              "Switch/Router node in n8n workflow",
+              "Creation keywords: ['création', 'contenu', 'instagram', 'branding', 'post', 'réseaux sociaux']",
+              "Automation keywords: ['automatisation', 'tunnel', 'vente', 'technique', 'email', 'funnel']",
+              "Case-insensitive matching",
+              "If Creation keywords found → Route to Creation Agent branch",
+              "If Automation keywords found → Route to Automation Agent branch",
+              "Default (no match) → Route to Creation Agent (friendly fallback)",
+              "Test both branches with sample messages"
+            ],
+            "status": "backlog",
+            "priority": "critical",
+            "estimatedHours": 2,
+            "prerequisites": ["3-3"]
+          },
+          {
+            "id": "3-5",
+            "key": "3-5-create-creation-agent-workflow-branch",
+            "title": "Create Creation Agent Workflow Branch",
+            "description": "As a user asking about content creation, I want responses from an expert in Instagram strategy and branding, so that I get specialized guidance.",
+            "acceptanceCriteria": [
+              "Creation Agent prompt node created in workflow",
+              "System prompt: 'Tu es un expert en création de contenu pour L'Agence des Copines. Tu aides les professionnels du bien-être à développer leur stratégie Instagram, créer du contenu engageant, et construire leur marque.'",
+              "Prompt includes: conversation history + RAG results (placeholder for now) + user message",
+              "Variables injected: {{conversation_history}}, {{rag_results}}, {{user_message}}",
+              "Tone: Warm, conversational, French 'tu' form",
+              "Agent type saved as metadata: 'creation'"
+            ],
+            "status": "backlog",
+            "priority": "critical",
+            "estimatedHours": 2,
+            "prerequisites": ["3-4"]
+          },
+          {
+            "id": "3-6",
+            "key": "3-6-create-automation-agent-workflow-branch",
+            "title": "Create Automation Agent Workflow Branch",
+            "description": "As a user asking about automation, I want responses from an expert in sales funnels and technical tools, so that I get specialized technical guidance.",
+            "acceptanceCriteria": [
+              "Automation Agent prompt node created in workflow",
+              "System prompt: 'Tu es un expert en automatisation et tunnels de vente pour L'Agence des Copines. Tu aides les professionnels du bien-être à configurer leurs funnels, automatiser leur marketing, et optimiser leurs outils techniques.'",
+              "Prompt includes: conversation history + RAG results (placeholder for now) + user message",
+              "Variables injected: {{conversation_history}}, {{rag_results}}, {{user_message}}",
+              "Tone: Clear, actionable, French 'tu' form",
+              "Agent type saved as metadata: 'automation'"
+            ],
+            "status": "backlog",
+            "priority": "critical",
+            "estimatedHours": 2,
+            "prerequisites": ["3-4"]
+          },
+          {
+            "id": "3-7",
+            "key": "3-7-integrate-claude-api",
+            "title": "Integrate Claude API",
+            "description": "As a developer, I want to send prompts to Claude and receive AI-generated responses, so that the chatbot can answer user questions.",
+            "acceptanceCriteria": [
+              "HTTP Request node configured for Anthropic API",
+              "Endpoint: https://api.anthropic.com/v1/messages",
+              "Headers: x-api-key (from .env), anthropic-version: 2023-06-01",
+              "Model: claude-3-5-sonnet-20241022",
+              "Max tokens: 1000, Temperature: 0.7",
+              "Request body: system prompt + messages array",
+              "Response parsed: extract content[0].text",
+              "Error handling: timeout (30s), API errors (return fallback message)",
+              "Test: Send sample prompt → Receive response"
+            ],
+            "status": "backlog",
+            "priority": "critical",
+            "estimatedHours": 3,
+            "prerequisites": ["3-5", "3-6"]
+          },
+          {
+            "id": "3-8",
+            "key": "3-8-implement-rag-query-pipeline-placeholder",
+            "title": "Implement RAG Query Pipeline (Placeholder)",
+            "description": "As a system, I want to query the knowledge base for relevant content, so that AI responses are grounded in L'Agence des Copines materials.",
+            "acceptanceCriteria": [
+              "Placeholder node added to workflow: 'RAG Query (Placeholder)'",
+              "TODO: Generate embedding for user message (OpenAI API)",
+              "TODO: Query Supabase pgvector for top 20 similar chunks",
+              "TODO: Rerank with Cohere API to top 3",
+              "For now: Return empty string (will be implemented in Epic 4)",
+              "Workflow continues without RAG (agent responds without knowledge base context)",
+              "Variable {{rag_results}} set to empty string"
+            ],
+            "status": "backlog",
+            "priority": "medium",
+            "estimatedHours": 1,
+            "prerequisites": ["3-5", "3-6"],
+            "notes": "Full RAG implementation in Epic 4 (Story 4.4)"
+          },
+          {
+            "id": "3-9",
+            "key": "3-9-implement-loop-detection-logic",
+            "title": "Implement Loop Detection Logic",
+            "description": "As a system, I want to detect when users are asking repetitive questions, so that I can trigger upsell opportunities.",
+            "acceptanceCriteria": [
+              "Count user messages in conversation history",
+              "If user message count >= 6 in last 10 messages → Trigger loop check",
+              "Calculate semantic similarity between last 3 user messages (simple keyword overlap for MVP)",
+              "If similarity score >= 0.8 → Set loop_detected = true",
+              "If loop detected → Append upsell message: 'Tu as beaucoup de questions approfondies ! 🎉 Notre formation [Topic] Pro pourrait t'intéresser pour un accompagnement personnalisé.'",
+              "Flag conversation in database (update conversations.status = 'upsell_opportunity')",
+              "Test: Send 6 similar questions → Upsell message appears"
+            ],
+            "status": "backlog",
+            "priority": "medium",
+            "estimatedHours": 3,
+            "prerequisites": ["3-3"]
+          },
+          {
+            "id": "3-10",
+            "key": "3-10-save-messages-to-supabase",
+            "title": "Save Messages to Supabase",
+            "description": "As a system, I want to persist user and bot messages in the database, so that conversation history is preserved.",
+            "acceptanceCriteria": [
+              "Save user message: INSERT INTO messages (conversation_id, role, content, timestamp)",
+              "Save bot response: INSERT INTO messages (conversation_id, role, content, agent_type, timestamp)",
+              "Update conversations.last_message_at = current timestamp",
+              "Create conversation record if new (first message)",
+              "All database writes succeed before returning response",
+              "Transaction rollback on error (prevent partial saves)",
+              "Test: Send message → Verify both user and bot messages in database"
+            ],
+            "status": "backlog",
+            "priority": "critical",
+            "estimatedHours": 3,
+            "prerequisites": ["3-7", "1-5"]
+          },
+          {
+            "id": "3-11",
+            "key": "3-11-return-response-to-widget",
+            "title": "Return Response to Widget",
+            "description": "As a developer, I want n8n to return a properly formatted JSON response to the widget, so that the bot message displays correctly.",
+            "acceptanceCriteria": [
+              "Response format: {response: string, agentType: string, conversationId: string, timestamp: string}",
+              "HTTP 200 status code",
+              "Content-Type: application/json",
+              "Response includes full bot message text",
+              "Timestamp in ISO 8601 format",
+              "CORS headers included (Access-Control-Allow-Origin)",
+              "Test end-to-end: Widget sends message → n8n returns response → Widget displays"
+            ],
+            "status": "backlog",
+            "priority": "critical",
+            "estimatedHours": 2,
+            "prerequisites": ["3-10"]
+          },
+          {
+            "id": "3-12",
+            "key": "3-12-test-and-optimize-workflow-performance",
+            "title": "Test and Optimize Workflow Performance",
+            "description": "As a developer, I want the workflow to complete in <8 seconds, so that the user experience meets the <10s requirement.",
+            "acceptanceCriteria": [
+              "Workflow execution time measured in n8n logs",
+              "Average time: <8 seconds (buffer for network latency)",
+              "Bottlenecks identified: Claude API call, database queries",
+              "Parallel execution where possible (e.g., save messages while formatting response)",
+              "Timeout handling: If Claude API >25s → Return error, don't block workflow",
+              "Load test: 10 concurrent requests → All complete in <10s",
+              "Performance documentation created"
+            ],
+            "status": "backlog",
+            "priority": "high",
+            "estimatedHours": 3,
+            "prerequisites": ["3-1", "3-2", "3-3", "3-4", "3-5", "3-6", "3-7", "3-8", "3-9", "3-10", "3-11"]
+          }
+        ]
+      },
+      {
+        "id": "epic-4",
+        "name": "RAG Knowledge Base & Testing",
+        "description": "Implement multi-format document ingestion pipeline to populate the knowledge base with L'Agence des Copines training materials. Integrate full RAG query into n8n workflow. Conduct end-to-end testing, optimize performance, and deploy to production.",
+        "goal": "Production-ready system with intelligent, knowledge-grounded responses",
+        "status": "backlog",
+        "priority": "high",
+        "estimatedDays": 1.5,
+        "tasks": [
+          {
+            "id": "4-1",
+            "key": "4-1-create-document-ingestion-script-multi-format",
+            "title": "Create Document Ingestion Script (Multi-Format)",
+            "description": "As a developer, I want a Python script that processes PDF, Excel, images, text, and Word documents, so that I can upload client content to the knowledge base.",
+            "acceptanceCriteria": [
+              "Python script: ingest_documents.py",
+              "Dependencies: pdfplumber, pandas, pytesseract, python-docx, openai",
+              "Format detection: Auto-detect file type by extension",
+              "PDF extraction: pdfplumber extracts text",
+              "Excel extraction: pandas reads all sheets, concatenates cells",
+              "Image extraction: Tesseract OCR on .jpg/.png",
+              "Text/Markdown: Direct read",
+              "Word extraction: python-docx extracts paragraphs",
+              "Usage: python ingest_documents.py --file path/to/document.pdf",
+              "Error handling: Log errors, continue processing other files"
+            ],
+            "status": "backlog",
+            "priority": "high",
+            "estimatedHours": 4,
+            "prerequisites": ["1-5"]
+          },
+          {
+            "id": "4-2",
+            "key": "4-2-implement-text-chunking-and-embedding-generation",
+            "title": "Implement Text Chunking and Embedding Generation",
+            "description": "As a developer, I want extracted text split into chunks with embeddings, so that RAG queries can find relevant sections.",
+            "acceptanceCriteria": [
+              "Chunk size: 500 tokens (using tiktoken library)",
+              "Chunk overlap: 50 tokens",
+              "Preserve sentence boundaries (don't split mid-sentence)",
+              "Generate embeddings: OpenAI text-embedding-3-small API",
+              "Embedding dimensions: 1536",
+              "Batch processing: 100 chunks per API call (cost optimization)",
+              "Progress indicator: Show 'Processing chunk X of Y'",
+              "Error handling: Retry failed embedding requests (3 attempts)"
+            ],
+            "status": "backlog",
+            "priority": "high",
+            "estimatedHours": 4,
+            "prerequisites": ["4-1"]
+          },
+          {
+            "id": "4-3",
+            "key": "4-3-save-chunks-and-embeddings-to-supabase-pgvector",
+            "title": "Save Chunks and Embeddings to Supabase pgvector",
+            "description": "As a developer, I want document chunks stored with vector embeddings in Supabase, so that I can perform similarity searches.",
+            "acceptanceCriteria": [
+              "Insert into documents table: {filename, file_type, upload_date, uploaded_by: 'benoit'}",
+              "Insert into document_chunks table: {document_id, content, embedding, chunk_index}",
+              "Bulk insert for performance (batch of 50 chunks)",
+              "Verify vector index exists: ivfflat on embedding column",
+              "Test similarity search: SELECT * FROM document_chunks ORDER BY embedding <=> query_embedding LIMIT 20",
+              "Metadata saved: document source, upload timestamp",
+              "Duplicate prevention: Skip if filename already exists"
+            ],
+            "status": "backlog",
+            "priority": "high",
+            "estimatedHours": 3,
+            "prerequisites": ["4-2", "1-5"]
+          },
+          {
+            "id": "4-4",
+            "key": "4-4-implement-full-rag-query-in-n8n-workflow",
+            "title": "Implement Full RAG Query in n8n Workflow",
+            "description": "As a system, I want to query the knowledge base for relevant content during conversations, so that AI responses are grounded in client materials.",
+            "acceptanceCriteria": [
+              "Replace placeholder RAG node from Story 3.8",
+              "Step 1: Generate query embedding (OpenAI API call from n8n)",
+              "Step 2: Supabase pgvector query (cosine similarity, top 20 chunks)",
+              "Step 3: Rerank with Cohere API (rerank-english-v3.0, return top 3)",
+              "Step 4: Format results as context string (concatenate chunk content)",
+              "Inject {{rag_results}} into agent prompts",
+              "Test: Ask 'Comment créer du contenu Instagram?' → Response includes specific content from uploaded ebook",
+              "Error handling: If RAG fails → Continue without context (graceful degradation)"
+            ],
+            "status": "backlog",
+            "priority": "high",
+            "estimatedHours": 4,
+            "prerequisites": ["4-3", "3-8"]
+          },
+          {
+            "id": "4-5",
+            "key": "4-5-upload-initial-client-content",
+            "title": "Upload Initial Client Content",
+            "description": "As Benoit, I want to upload L'Agence des Copines ebooks and training materials, so that the chatbot can answer questions about their content.",
+            "acceptanceCriteria": [
+              "Gather client materials: ebooks (PDF), formations (docs/Excel)",
+              "Run ingestion script on each file: python ingest_documents.py --file [path]",
+              "Verify uploads in Supabase: Check documents and document_chunks tables",
+              "Minimum 5 documents uploaded (mix of PDF, Excel, docs)",
+              "Total chunks: ~500+ (sufficient for meaningful RAG responses)",
+              "Test queries: Sample questions about uploaded content return relevant results",
+              "Document inventory created: List of uploaded files with metadata"
+            ],
+            "status": "backlog",
+            "priority": "high",
+            "estimatedHours": 2,
+            "prerequisites": ["4-3"]
+          },
+          {
+            "id": "4-6",
+            "key": "4-6-end-to-end-integration-testing",
+            "title": "End-to-End Integration Testing",
+            "description": "As a QA tester, I want to test the complete user flow from widget to AI response, so that I verify all components work together.",
+            "acceptanceCriteria": [
+              "Test Case 1: First-time user sends Creation question → Response in <10s",
+              "Test Case 2: Returning user conversation persists across page reload",
+              "Test Case 3: Mobile fullscreen mode works on iPhone/Android",
+              "Test Case 4: Rate limiting triggers after 10 messages",
+              "Test Case 5: Loop detection triggers upsell after 6 similar messages",
+              "Test Case 6: RAG returns relevant content from knowledge base",
+              "Test Case 7: Error handling works (network disconnect, retry)",
+              "All tests documented in test-cases.md"
+            ],
+            "status": "backlog",
+            "priority": "critical",
+            "estimatedHours": 4,
+            "prerequisites": ["epic-2", "epic-3", "4-4"]
+          },
+          {
+            "id": "4-7",
+            "key": "4-7-performance-optimization-and-load-testing",
+            "title": "Performance Optimization and Load Testing",
+            "description": "As a developer, I want to verify the system handles 50 concurrent users, so that performance requirements are met.",
+            "acceptanceCriteria": [
+              "Load testing tool setup (Apache Bench or k6)",
+              "Test: 50 concurrent requests to /webhook/chat",
+              "All requests complete in <10 seconds",
+              "No errors or dropped connections",
+              "Database connection pool sized appropriately (min 10, max 50)",
+              "n8n workflow queue handles concurrency (100 max executions)",
+              "Bottlenecks identified and resolved (cache frequently accessed data)",
+              "Load test results documented"
+            ],
+            "status": "backlog",
+            "priority": "high",
+            "estimatedHours": 3,
+            "prerequisites": ["4-6"]
+          },
+          {
+            "id": "4-8",
+            "key": "4-8-production-deployment-and-go-live",
+            "title": "Production Deployment and Go-Live",
+            "description": "As a product owner, I want the chatbot live on the production Kajabi site, so that users can start using it.",
+            "acceptanceCriteria": [
+              "Widget script added to Kajabi production site footer",
+              "Test on production: Widget loads, conversation works end-to-end",
+              "Monitor n8n logs: No errors in first hour",
+              "Monitor Supabase: Messages being saved correctly",
+              "Monitor API costs: Stay within budget (~65€ estimated)",
+              "Backup created: Database snapshot, n8n workflows exported",
+              "Rollback plan documented (remove script tag if critical issue)",
+              "Go-live announcement to L'Agence des Copines team"
+            ],
+            "status": "backlog",
+            "priority": "critical",
+            "estimatedHours": 3,
+            "prerequisites": ["4-7"]
+          },
+          {
+            "id": "4-9",
+            "key": "4-9-create-monitoring-and-maintenance-documentation",
+            "title": "Create Monitoring and Maintenance Documentation",
+            "description": "As Benoit, I want clear documentation for monitoring and maintaining the system, so that I can manage it without ongoing developer help.",
+            "acceptanceCriteria": [
+              "Monitoring guide: How to check n8n logs, Supabase metrics, uptime",
+              "Troubleshooting guide: Common issues and solutions",
+              "Maintenance guide: How to upload new documents, update agent prompts",
+              "Cost tracking: How to monitor monthly API usage",
+              "SSL renewal: Certbot auto-renewal verification",
+              "Backup strategy: Database snapshots, n8n workflow exports",
+              "Contact information: Who to call if critical issues arise",
+              "Documentation saved to /docs/maintenance-guide.md"
+            ],
+            "status": "backlog",
+            "priority": "medium",
+            "estimatedHours": 2,
+            "prerequisites": ["4-8"]
+          }
+        ]
+      }
+    ],
+    "totalTasks": 38,
+    "totalEstimatedHours": 110,
+    "criticalPath": [
+      "epic-1",
+      "epic-2",
+      "epic-3",
+      "epic-4"
+    ]
+  },
+  "metadata": {
+    "generatedDate": "2025-11-03",
+    "generatedBy": "Winston - BMAD Architecture Agent",
+    "version": "1.0",
+    "format": "archon-import-v1",
+    "sourceFiles": [
+      "sprint-status.yaml",
+      "epics.md",
+      "architecture.md",
+      "PRD.md",
+      "technical-spec-Agent-IA-L-Agence-des-Copines-2025-11-03.md"
+    ]
+  }
+}
